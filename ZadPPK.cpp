@@ -1,6 +1,6 @@
 /*****************************************************************//**
  * \file   ZadPPK.cpp
- * \brief  
+ * \brief  main function that takes arguments and runs the program
  * 
  * \author fafik
  * \date   10.2023
@@ -8,28 +8,66 @@
 
 #include <iostream>
 
-
+#include "Dikstra.h"
 
 
 /**
  * @brief takes in args
- * @param argC num of arguments
- * @param argV arguments
+ * @param argC int num of arguments
+ * @param argV string arguments
  * @return 0 ok
  * @return 1 error - help shown
+ * @return 2 error - file not accessible
 */
 int main(const int argC, const char* argV[])
 {
-    std::cout << "Hello World!\n";
+	using namespace std;
+//debug disabled
+	//no args given, show Help
+	/*if (argC == 1) {
+		printf("Help for Dijkstra, ANSI only build\n  -g graph file in\n  -w vertices file in\n  -o output file\n");
+		return 1;
+	}*/
+
+	Dikstra DjDisktra;
+	string arg_str;
+	//process agrs
+	for (int i = 1; i < argC; ++i) {
+		arg_str.assign(argV[i]);
+		if (arg_str == "-g") {
+			DjDisktra.set_graphFile(argV[++i]);
+		}
+		else if (arg_str == "-w" || arg_str == "-v") {
+			DjDisktra.set_verticesFile(argV[++i]);
+		}
+		else if (arg_str == "-o") {
+			DjDisktra.set_outputFile(argV[++i]);
+		}
+	}
+
+//debug only set
+	DjDisktra.set_graphFile("V:\\graph.txt");
+	DjDisktra.set_verticesFile("V:\\v.txt");
+	DjDisktra.set_outputFile("V:\\out.txt");
+
+	DikstraErrors error = DjDisktra.run();
+	printf("\n");
+	switch (error)
+	{
+	case DikstraErrors::ok:
+		printf("Dijkstra finished successfully, see output file \"%s\" for results.\n", DjDisktra.get_outputFile().c_str());
+		break;
+	case DikstraErrors::arg_error:
+		printf("Error missing arguments, see Help\n");
+		return 1;
+		break;
+	case DikstraErrors::file_error:
+		printf("Error Counld not open all necessary files.\n");
+		return 2;
+		break;
+	default:
+		break;
+	}
+
+	return 0;
 }
-
-// Run program: Ctrl + F5 or Debug > Start Without Debugging menu
-// Debug program: F5 or Debug > Start Debugging menu
-
-// Tips for Getting Started: 
-//   1. Use the Solution Explorer window to add/manage files
-//   2. Use the Team Explorer window to connect to source control
-//   3. Use the Output window to see build output and other messages
-//   4. Use the Error List window to view errors
-//   5. Go to Project > Add New Item to create new code files, or Project > Add Existing Item to add existing code files to the project
-//   6. In the future, to open this project again, go to File > Open > Project and select the .sln file
