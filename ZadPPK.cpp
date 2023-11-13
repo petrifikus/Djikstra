@@ -12,7 +12,7 @@
 
 
 /**
- * @brief takes in args
+ * @brief takes in cmd arguments
  * @param argC int num of arguments
  * @param argV string arguments
  * @return 0 ok
@@ -21,7 +21,6 @@
 */
 int main(const int argC, const char* argV[])
 {
-	using namespace std;
 //debug disabled
 	//no args given, show Help
 	/*if (argC == 1) {
@@ -30,7 +29,7 @@ int main(const int argC, const char* argV[])
 	}*/
 
 	Dikstra DjDisktra;
-	string arg_str;
+	std::string arg_str;
 	//process agrs
 	for (int i = 1; i < argC; ++i) {
 		arg_str.assign(argV[i]);
@@ -46,9 +45,9 @@ int main(const int argC, const char* argV[])
 	}
 
 //debug only set
-	DjDisktra.set_graphFile("V:\\graph.txt");
-	DjDisktra.set_verticesFile("V:\\v.txt");
-	DjDisktra.set_outputFile("V:\\out.txt");
+	DjDisktra.set_graphFile("graf.txt");
+	DjDisktra.set_verticesFile("w.txt");
+	DjDisktra.set_outputFile("out.txt");
 
 	DikstraErrors error = DjDisktra.run();
 	printf("\n");

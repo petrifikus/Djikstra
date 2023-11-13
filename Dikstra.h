@@ -10,19 +10,7 @@
 #include <vector>
 #include <string>
 #include <fstream>
-
-/* wyjaśnienie
-*  jest lista kropek o nr: 1,2,3,... i kazda kropka ma? odnogi do (1badz wiecej kropek) o podanych dlugosciach
-*  np. 1= [{2; 50.2}; {3; 12.1}]  3=[{1; 12.1}]		@see "PPK dikstra.jpg"
-*  1 -> 2 : 50.2	1 - 3 : 12.1
-*/
-
-//1) aby policzyc najkrotsze odleglosci potrzebujemy wybrac pkt startowy, i przejsc wszystkie bezposrednie polaczenia..
-//   ..zapisujemy odleglosci w tablicy punktow, oraz ich inicjatora .roota
-//2) kontunujemy te kroki dla najkrutszego odcinka |root a pkt|
-//pamietamy o tym zeby w miare mozliwosci odwiedzic wszystkie punkty
-
-
+#include <limits>
 
 
 
@@ -44,7 +32,7 @@ class Dikstra
 public:
 	/**
 	 * @brief 
-	 * @param graphFile in file, where lines are specified like "2 -> 5 -> 3 : 37.05"
+	 * @param graphFile in file, where lines are specified like "2 -> 3 : 37.05"
 	*/
 	inline void set_graphFile(const std::string graphFile) { this->graphFile = graphFile; }
 	/**
@@ -59,7 +47,7 @@ public:
 	inline void set_outputFile(const std::string outputFile) { this->outputFile = outputFile; }
 	/**
 	 * @brief 
-	 * @return outputFile
+	 * @return outputFile name
 	*/
 	inline const std::string& get_outputFile()const { return this->outputFile; }
 	/**
@@ -80,6 +68,85 @@ public:
 	inline DikstraErrors run() { return lastError = run_private(); }
 
 
+protected:
+	static constexpr double _infDouble = std::numeric_limits<double>::infinity();
+	/**
+	 * @brief list of individual points
+	*/
+	typedef std::map<int, double> DItemList;
+	/**
+	 * @brief list of all points, that store a list of points they connect to
+	*/
+	typedef std::map<int, DItemList> DwebT;
+	/**
+	 * @brief (point) to point distance
+	*/
+	typedef std::pair<int, double> pointDistance;
+	/**
+	 * @brief distance (between) points
+	*/
+	typedef std::pair<double, int> distancePoint;
+	/**
+	 * @brief data structure passed for graph solving
+	*/
+	struct SolveGraphStruct
+	{
+		/**
+		 * @brief ctor that will init all values based on DwebIn
+		 * @param DwebIn: graph of connections
+		*/
+		SolveGraphStruct(const Dikstra::DwebT& DwebIn) { init(DwebIn); }
+		/**
+		 * @brief will init all values based on DwebIn
+		 * @param DwebIn: graph of connections 
+		*/
+		void init(const Dikstra::DwebT& DwebIn);
+		/**
+		 * @brief adds vertice to queue and updates the Previous_Distance table
+		 * @param vertice id
+		 * @param distance beetween points
+		 * @param PreviousVertice previous vertice
+		 * @return true when added; false when already in queue
+		*/
+		bool addVerticeToQueue(const int& vertice, const double& distance, const int& PreviousVertice);
+		/**
+		 * @brief adds vertice to queue and updates the Previous_Distance table
+		 * @param pointDistance_ {vertice id, distance beetween points}
+		 * @param PreviousVertice previous vertice
+		 * @return true when added; false when already in queue
+		*/
+		inline bool addVerticeToQueue(const pointDistance& pointDistance_, const int& PreviousVertice) {
+			return addVerticeToQueue(pointDistance_.first, pointDistance_.second, PreviousVertice);
+		}
+		/**
+		 * @brief gets the next closest vertice from the pending list and removes it
+		 * @param output: vertice closest
+		 * @return true if returned a value, false if error
+		*/
+		bool popClosestVerticeFromQueue(pointDistance& output);
+	
+		//one map that stores all vertices; where 0 means NOT visited yet, 1 means Visited already.
+		std::map<int, bool> visitedToVisit;
+		//one map that stores previous vertice & shortest distance
+		std::map<int, pointDistance> Previous_Distance;
+		//amount of vertices that have not been solved yet || couldn't be reached (starts with Dweb.size();)
+		size_t leftToVisit;
+		//amount of connections made from the starting vertice
+		size_t connectsCount;
+		//11.11 queue for vertices to scan
+		std::map<int, double> listPending;
+	};
+
+
+	/**
+	 * @brief stores all vertices their conections and distances loaded from file
+	*/
+	DwebT Dweb;
+	std::vector<int> verticesVector;
+	std::string graphFile;
+	std::string verticesFile;
+	std::string outputFile;
+	DikstraErrors lastError;
 
 private:
 	/**
@@ -93,25 +160,17 @@ private:
 	*/
 	bool load_files();
 	/**
-	 * @brief finds the shortest path from given point(vertice) to all others
+	 * @brief finds the shortest path from given point(vertice) to all others & prints out the results
 	 * @param vertice id of the point to start tracing roads from
 	*/
 	void findShortestPath(const int& vertice)const;
+	/**
+	 * @brief print out all connected vertices
+	 * @param SolveGraphCin struct made by findShortestPath()
+	 * @param vertice to start going back from
+	*/
+	void writeShortestPathFor(const SolveGraphStruct& SolveGraphCin, const int vertice)const;
 
-protected:
-	/**
-	 * @brief list of individual points
-	*/
-	typedef std::map<int, double> DItemList;
-	/**
-	 * @brief list of all points, that store a list of points they connect to
-	*/
-	std::map<int, DItemList> Dweb;
-	std::vector<int> verticesVector;
-	std::string graphFile;
-	std::string verticesFile;
-	std::string outputFile;
-	DikstraErrors lastError;
 };
 
 
