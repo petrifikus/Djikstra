@@ -15,7 +15,7 @@ DikstraErrors Dikstra::run_private()
 	if (!load_files()) return DikstraErrors::file_error;
 	
 	//just a debug print of the graph structure in memory
-	printf("\nprinting graph:\n");
+	/*printf("\nprinting graph:\n");
 	for (const auto& pair : Dweb) {
 		printf("[%i]= {\n", pair.first);
 		for (const auto& pairpair : pair.second) {
@@ -23,16 +23,17 @@ DikstraErrors Dikstra::run_private()
 		}
 		printf("}\n");
 	}
-	printf("\nprinting if V exists:\n");
+	printf("\nprinting if V exists:\n");*/
+
 	for (const auto& item : verticesVector) {
 		const auto& finds = Dweb.find(item);
-		if (finds == Dweb.end()) printf("  key: %i NOT found\n", item);
+		if (finds == Dweb.end()) printf("  Vertice: %i NOT found\n", item);
 		else {
-			printf("  key: %i exists\n", finds->first);
+			printf("  Vertice: %i paths\n", finds->first);
+			findShortestPath(finds->first);
 		}
+		printf("\n");
 	}
-
-	findShortestPath(2);
 
 	return DikstraErrors::ok;
 }
@@ -100,10 +101,10 @@ void Dikstra::findShortestPath(const int& vertice) const
 	while (SolveGraph.popClosestVerticeFromQueue(closestVertice)) {
 		const auto& id = closestVertice.first;
 		const auto& weight = closestVertice.second;
-		printf("tracing V[%i]\n", id);
+//		printf("tracing V[%i]\n", id);
 		for (const auto& iter : Dweb.at(id)) {
 			SolveGraph.addVerticeToQueue(iter, id);
-			printf("  To V[%i], +%f = %f\n", iter.first, iter.second, iter.second + weight);
+//			printf("  To V[%i], +%f = %f\n", iter.first, iter.second, iter.second + weight);
 		}
 	}
 
@@ -117,7 +118,8 @@ void Dikstra::findShortestPath(const int& vertice) const
 		}
 	}
 
-	printf("\n");
+	//just a debug print of the connections Table in memory
+	/*printf("\n");
 	for (const auto& listing : SolveGraph.listPending) {
 		printf("pending [%i]=\t %f\n", listing.first, listing.second);
 	}
@@ -125,18 +127,24 @@ void Dikstra::findShortestPath(const int& vertice) const
 	for (const auto& listing : SolveGraph.Previous_Distance) {
 		printf("prevDis [%i]=\t (%i, %f, %i)\n", listing.first, listing.second.first, listing.second.second, SolveGraph.visitedToVisit[listing.first]);
 	}
-	printf("_-_ visited= %lli, left= %lli\n", SolveGraph.connectsCount, SolveGraph.leftToVisit);
+	printf("_-_ visited= %lli, left= %lli\n", SolveGraph.connectsCount, SolveGraph.leftToVisit);*/
 }
 
 void Dikstra::writeShortestPathFor(const SolveGraphStruct& SolveGraphCin, const int vertice) const
 {
-	//13.11, almost works, just prints it in reverse
 	int parentVertice = vertice;
+	//reverse the order of print
+	std::vector<int> VList;
 	while (parentVertice != -1) {
-		printf("%i -> ", parentVertice);
+		VList.insert(VList.begin(), parentVertice);
 		parentVertice = SolveGraphCin.Previous_Distance.at(parentVertice).first;
 	}
-	printf(" : %f\n", SolveGraphCin.Previous_Distance.at(vertice).second);
+	for (const auto item : VList) {
+		printf("%i ", item);
+		if (item != vertice)
+			printf("-> ");
+	}
+	printf(": %f\n", SolveGraphCin.Previous_Distance.at(vertice).second);
 }
 
 

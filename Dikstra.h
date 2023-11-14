@@ -31,22 +31,22 @@ class Dikstra
 {
 public:
 	/**
-	 * @brief 
+	 * @brief set graphFile file name
 	 * @param graphFile in file, where lines are specified like "2 -> 3 : 37.05"
 	*/
 	inline void set_graphFile(const std::string graphFile) { this->graphFile = graphFile; }
 	/**
-	 * @brief 
+	 * @brief set verticesFile file name
 	 * @param verticesFile in file, where each line contains a number(id) of vertice to make shortest paths to every other connected point
 	*/
 	inline void set_verticesFile(const std::string verticesFile) { this->verticesFile = verticesFile; }
 	/**
-	 * @brief 
+	 * @brief set outputFile file name
 	 * @param outputFile out file, all results will be saved there
 	*/
 	inline void set_outputFile(const std::string outputFile) { this->outputFile = outputFile; }
 	/**
-	 * @brief 
+	 * @brief get get_outputFile file name
 	 * @return outputFile name
 	*/
 	inline const std::string& get_outputFile()const { return this->outputFile; }
@@ -56,7 +56,7 @@ public:
 	*/
 	inline const bool is_ok()const { return graphFile.size() && verticesFile.size() && outputFile.size(); }
 	/**
-	 * @brief
+	 * @brief gets last error of type DikstraErrors
 	 * @return last error from run()
 	*/
 	inline DikstraErrors get_lastError()const { return lastError; }
@@ -69,6 +69,7 @@ public:
 
 
 protected:
+	//double = +inf
 	static constexpr double _infDouble = std::numeric_limits<double>::infinity();
 	/**
 	 * @brief list of individual points
