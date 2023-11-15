@@ -121,6 +121,7 @@ protected:
 		}
 		/**
 		 * @brief gets the next closest vertice from the pending list and removes it
+		 * (it would be faster if we sorted by distance)
 		 * @param output: vertice closest
 		 * @return true if returned a value, false if error
 		*/

@@ -5,7 +5,6 @@
  * \author fafik
  * \date   10.2023
  *********************************************************************/
-//#include <sstream>
 #include "Dikstra.h"
 
 
@@ -15,7 +14,7 @@ DikstraErrors Dikstra::run_private()
 	if (!load_files()) return DikstraErrors::file_error;
 	
 	//just a debug print of the graph structure in memory
-	/*printf("\nprinting graph:\n");
+	printf("\nprinting graph:\n");
 	for (const auto& pair : Dweb) {
 		printf("[%i]= {\n", pair.first);
 		for (const auto& pairpair : pair.second) {
@@ -23,12 +22,11 @@ DikstraErrors Dikstra::run_private()
 		}
 		printf("}\n");
 	}
-	printf("\nprinting if V exists:\n");*/
 
 	std::ofstream outFile;
 	outFile.open(outputFile);
 	if (!outFile.is_open()) {
-		printf("could not open output file \"%s\"\n", get_outputFile().c_str());
+		printf("Error! Could not open output file \"%s\"\n", get_outputFile().c_str());
 		return DikstraErrors::file_error;
 	}
 	outFileP = &outFile;
@@ -106,8 +104,8 @@ void Dikstra::findShortestPath(const int& vertice) const
 	//check if vertice exists
 	const auto& exists = Dweb.find(vertice);
 	if (exists == Dweb.end()) {
-		outFile << "vertice [" << vertice << "] does not exist;\n";
-		printf("vertice [%i] does not exist;\n", vertice);
+		outFile << "Vertice [" << vertice << "] does not exist;\n";
+		printf("Vertice [%i] does not exist;\n", vertice);
 		return;
 	}
 	//make structure for solving graph from this [vertice] && initialize the starting data
@@ -120,12 +118,27 @@ void Dikstra::findShortestPath(const int& vertice) const
 	while (SolveGraph.popClosestVerticeFromQueue(closestVertice)) {
 		const auto& id = closestVertice.first;
 		const auto& weight = closestVertice.second;
-//		printf("tracing V[%i]\n", id);
-		for (const auto& iter : Dweb.at(id)) {
+		//printf("tracing V[%i]\n", id);
+		auto ItemExists = Dweb.find(id);
+		if (ItemExists == Dweb.end()) {
+			//printf("---- [%i] is not in the main table of connections\n", id);
+			//SolveGraph.addVerticeOneWay();
+			continue;
+		}
+		for (const auto& iter : ItemExists->second) {
+			//debug print
+			/*if (id == 7 || iter.first == 7) {
+				printf("Now in 7: [%i]: {%i}\n", id, iter.first);
+			}*/
 			SolveGraph.addVerticeToQueue(iter, id);
 //			printf("  To V[%i], +%f = %f\n", iter.first, iter.second, iter.second + weight);
 		}
 	}
+
+	//debug print
+	/*for (const auto iters : SolveGraph.Previous_Distance) {
+		printf(" @ %i = {%i, %f}\n", iters.first, iters.second.first, iters.second.second);
+	}*/
 
 	//iterate all made connections and print them
 	int verticeConnections = 0;
@@ -206,7 +219,14 @@ bool Dikstra::SolveGraphStruct::addVerticeToQueue(const int& vertice, const doub
 	if (PreviousVertice != -1) {
 		totalDistance += Previous_Distance[PreviousVertice].second;
 	}
+
+	//15.11 fixed check if this one exists (if not then init it)
+	auto existsItem = Previous_Distance.find(vertice);
 	auto& distanceToV = Previous_Distance[vertice];
+	if (existsItem == Previous_Distance.end()) {
+		distanceToV = { PreviousVertice, totalDistance };
+	}
+
 	//set new lower distance
 	if (totalDistance < distanceToV.second) {
 		if (distanceToV.second == _infDouble) ++connectsCount;

@@ -7,6 +7,7 @@
  *********************************************************************/
 
 #include <iostream>
+#include <filesystem>
 
 #include "Dikstra.h"
 
@@ -44,6 +45,8 @@ int main(const int argC, const char* argV[])
 		}
 	}
 
+	auto cwd = std::filesystem::current_path();
+	std::cout << "cwd = " << cwd << "\n";
 //debug only set
 	DjDisktra.set_graphFile("graf.txt");
 	DjDisktra.set_verticesFile("w.txt");
