@@ -148,6 +148,7 @@ protected:
 	std::string verticesFile;
 	std::string outputFile;
 	DikstraErrors lastError;
+	std::ofstream* outFileP;
 
 private:
 	/**

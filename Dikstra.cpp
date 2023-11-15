@@ -5,7 +5,7 @@
  * \author fafik
  * \date   10.2023
  *********************************************************************/
-#include <sstream>
+//#include <sstream>
 #include "Dikstra.h"
 
 
@@ -25,16 +25,31 @@ DikstraErrors Dikstra::run_private()
 	}
 	printf("\nprinting if V exists:\n");*/
 
+	std::ofstream outFile;
+	outFile.open(outputFile);
+	if (!outFile.is_open()) {
+		printf("could not open output file \"%s\"\n", get_outputFile().c_str());
+		return DikstraErrors::file_error;
+	}
+	outFileP = &outFile;
+
 	for (const auto& item : verticesVector) {
 		const auto& finds = Dweb.find(item);
-		if (finds == Dweb.end()) printf("  Vertice: %i NOT found\n", item);
+		if (finds == Dweb.end()) {
+			outFile << "  Vertice: " << item << " NOT found\n";
+			printf("  Vertice: %i NOT found\n", item);
+		}
 		else {
+			outFile << "  Vertice: " << finds->first << " paths\n";
 			printf("  Vertice: %i paths\n", finds->first);
 			findShortestPath(finds->first);
 		}
+		outFile << "\n";
 		printf("\n");
 	}
 
+	outFile.flush();
+	outFile.close();
 	return DikstraErrors::ok;
 }
 
@@ -59,6 +74,8 @@ bool Dikstra::load_files()
 	while ( !inFile.eof() )
 	{
 		inFile >> v1 >> tempStr;
+		//15-11 fixed loading errors when file ends in empty line
+		if (inFile.rdstate()) break;
 		bothWays = !(tempStr.find(">") != tempStr.npos);
 		inFile >> v2 >> tempStr;
 		inFile >> vDistance;
@@ -85,9 +102,11 @@ bool Dikstra::load_files()
 
 void Dikstra::findShortestPath(const int& vertice) const
 {
+	std::ofstream& outFile = *outFileP;
 	//check if vertice exists
 	const auto& exists = Dweb.find(vertice);
 	if (exists == Dweb.end()) {
+		outFile << "vertice [" << vertice << "] does not exist;\n";
 		printf("vertice [%i] does not exist;\n", vertice);
 		return;
 	}
@@ -109,13 +128,20 @@ void Dikstra::findShortestPath(const int& vertice) const
 	}
 
 	//iterate all made connections and print them
+	int verticeConnections = 0;
 	for (const auto& iter : SolveGraph.visitedToVisit) {
 		//skipp self A->A : 0.00
 		if (iter.first == vertice) continue;
 		//just in case make sure it was added to connections table
 		if (iter.second == true) {
+			++verticeConnections;
 			writeShortestPathFor(SolveGraph, iter.first);
 		}
+	}
+	//this vertice does not connect to anything
+	if (verticeConnections == 0) {
+		outFile << " vertice [" << vertice << "] exists but does not connect to anything\n";
+		printf(" vertice [%i] exists but does not connect to anything\n", vertice);
 	}
 
 	//just a debug print of the connections Table in memory
@@ -132,18 +158,25 @@ void Dikstra::findShortestPath(const int& vertice) const
 
 void Dikstra::writeShortestPathFor(const SolveGraphStruct& SolveGraphCin, const int vertice) const
 {
+	std::ofstream& outFile = *outFileP;
 	int parentVertice = vertice;
 	//reverse the order of print
 	std::vector<int> VList;
+	//get list of route
 	while (parentVertice != -1) {
-		VList.insert(VList.begin(), parentVertice);
+		VList.push_back(parentVertice);
 		parentVertice = SolveGraphCin.Previous_Distance.at(parentVertice).first;
 	}
-	for (const auto item : VList) {
-		printf("%i ", item);
-		if (item != vertice)
+	//print that list in reverse order
+	for (std::vector<int>::reverse_iterator item = VList.rbegin(); item != VList.rend(); ++item) {
+		outFile << (*item) << " ";
+		printf("%i ", *item);
+		if (*item != vertice) {
+			outFile << "-> ";
 			printf("-> ");
+		}
 	}
+	outFile << ": " << SolveGraphCin.Previous_Distance.at(vertice).second << "\n";
 	printf(": %f\n", SolveGraphCin.Previous_Distance.at(vertice).second);
 }
 
