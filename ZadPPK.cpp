@@ -22,7 +22,7 @@ int main(const int argC, const char* argV[])
 {
 	//no args given, show Help
 	if (argC == 1) {
-		printf("Help for Dijkstra, ANSI only build\n  -g graph file in\n  -w vertices file in\n  -o output file out\n");
+		printf("Help for Dijkstra, ANSI only build v1.05\n  -g graph file in\n  -w vertices file in\n  -o output file out\n");
 		return 1;
 	}
 
