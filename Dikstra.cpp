@@ -2,7 +2,7 @@
  * \file   Dikstra.cpp
  * \brief  run, load, and calculate the shortest path from given points to all other ones
  * 
- * \author fafik
+ * \author petrifikus
  * \date   10.2023
  *********************************************************************/
 #include "Dikstra.h"
@@ -12,16 +12,18 @@ DikstraErrors Dikstra::run_private()
 {
 	if (!is_ok()) return DikstraErrors::arg_error;
 	if (!load_files()) return DikstraErrors::file_error;
+	//set the max lenght of id
+	_longestId = (int)std::to_string(Dweb.rbegin()->first).size();
 	
 	//just a debug print of the graph structure in memory
-	printf("\nprinting graph:\n");
+	/*printf("\nprinting graph:\n");
 	for (const auto& pair : Dweb) {
 		printf("[%i]= {\n", pair.first);
 		for (const auto& pairpair : pair.second) {
 			printf("  %i = %f\n", pairpair.first, pairpair.second);
 		}
 		printf("}\n");
-	}
+	}*/
 
 	std::ofstream outFile;
 	outFile.open(outputFile);
@@ -79,12 +81,12 @@ bool Dikstra::load_files()
 		inFile >> vDistance;
 		//check if point points to itself (if so then give a warning)
 		if (v1 == v2) {
-			printf("!Point %i points to itself!\n", v1);
+			printf("!Vertice %i points to itself!\n", v1);
 			continue;
 		}
 		//check if both points are >= 0
 		if (v1 < 0 || v2 < 0) {
-			printf("!Point %i or %i is negative!\n", v1, v2);
+			printf("!Vertice %i or %i is negative!\n", v1, v2);
 			continue;
 		}
 		//save values
@@ -117,28 +119,16 @@ void Dikstra::findShortestPath(const int& vertice) const
 	//solve all connections starting from given vertice
 	while (SolveGraph.popClosestVerticeFromQueue(closestVertice)) {
 		const auto& id = closestVertice.first;
-		const auto& weight = closestVertice.second;
-		//printf("tracing V[%i]\n", id);
 		auto ItemExists = Dweb.find(id);
 		if (ItemExists == Dweb.end()) {
 			//printf("---- [%i] is not in the main table of connections\n", id);
-			//SolveGraph.addVerticeOneWay();
 			continue;
 		}
+		//try to add all connected verticess to queue
 		for (const auto& iter : ItemExists->second) {
-			//debug print
-			/*if (id == 7 || iter.first == 7) {
-				printf("Now in 7: [%i]: {%i}\n", id, iter.first);
-			}*/
 			SolveGraph.addVerticeToQueue(iter, id);
-//			printf("  To V[%i], +%f = %f\n", iter.first, iter.second, iter.second + weight);
 		}
 	}
-
-	//debug print
-	/*for (const auto iters : SolveGraph.Previous_Distance) {
-		printf(" @ %i = {%i, %f}\n", iters.first, iters.second.first, iters.second.second);
-	}*/
 
 	//iterate all made connections and print them
 	int verticeConnections = 0;
@@ -182,15 +172,15 @@ void Dikstra::writeShortestPathFor(const SolveGraphStruct& SolveGraphCin, const 
 	}
 	//print that list in reverse order
 	for (std::vector<int>::reverse_iterator item = VList.rbegin(); item != VList.rend(); ++item) {
-		outFile << (*item) << " ";
+		outFile << std::setfill(' ') << std::setw(_longestId) << (*item) << " ";
 		printf("%i ", *item);
 		if (*item != vertice) {
 			outFile << "-> ";
 			printf("-> ");
 		}
 	}
-	outFile << ": " << SolveGraphCin.Previous_Distance.at(vertice).second << "\n";
-	printf(": %f\n", SolveGraphCin.Previous_Distance.at(vertice).second);
+	outFile << ": " << std::setprecision(2) << std::fixed << SolveGraphCin.Previous_Distance.at(vertice).second << "\n";
+	printf(": %f\n", (double)SolveGraphCin.Previous_Distance.at(vertice).second);
 }
 
 
@@ -198,34 +188,26 @@ void Dikstra::writeShortestPathFor(const SolveGraphStruct& SolveGraphCin, const 
 void Dikstra::SolveGraphStruct::init(const Dikstra::DwebT& DwebIn)
 {
 	leftToVisit = DwebIn.size();
+	connectsCount = 0;
 	Previous_Distance.clear();
 	visitedToVisit.clear();
 	listPending.clear();
-	connectsCount = 0;
-	//set the starting data
-	for (const auto& iter : DwebIn) {
-		const auto& id = iter.first;
-		Previous_Distance[id] = { -1,_infDouble };
-		//visitedToVisit[id] = 0;
-	}
+	listPendingSV.clear();
+	//setting the starting data as of 16.11 is uneccessary as the default ctor will init {0,+inf}
 }
 
 bool Dikstra::SolveGraphStruct::addVerticeToQueue(const int& vertice, const double& distance, const int& PreviousVertice)
 {
 	if (distance < 0) return false;
-	//check if we already visited it
+	//check if we already visited it/create it set to {0}
 	auto& visitedStatus = visitedToVisit[vertice];
 	double totalDistance = distance;
 	if (PreviousVertice != -1) {
 		totalDistance += Previous_Distance[PreviousVertice].second;
 	}
 
-	//15.11 fixed check if this one exists (if not then init it)
-	auto existsItem = Previous_Distance.find(vertice);
+	//&ref to item in map; if it doesnt exist it will be created with {0, +inf} (as of 16.11)
 	auto& distanceToV = Previous_Distance[vertice];
-	if (existsItem == Previous_Distance.end()) {
-		distanceToV = { PreviousVertice, totalDistance };
-	}
 
 	//set new lower distance
 	if (totalDistance < distanceToV.second) {
@@ -240,11 +222,15 @@ bool Dikstra::SolveGraphStruct::addVerticeToQueue(const int& vertice, const doub
 	auto setPending = listPending.find(vertice);
 	//not new, update(only to lower value)
 	if (setPending != listPending.end()) {
-		if (distance < setPending->second) setPending->second = distance;
+		if (distance < setPending->second) {
+			listPendingSV.update({ setPending->second, vertice }, { distance, vertice });
+			setPending->second = distance;
+		}
 		return true;
 	}
 	//new
 	listPending[vertice] = distance;
+	listPendingSV.add({ distance, vertice });
 	return true;
 }
 
@@ -253,16 +239,51 @@ bool Dikstra::SolveGraphStruct::popClosestVerticeFromQueue(Dikstra::pointDistanc
 {
 	//cant get element(queue empty)
 	if (listPending.empty()) return false;
-	pointDistance closest{ -1, _infDouble };
-	for (auto& iter : listPending) {
-		if (iter.second < closest.second) {
-			closest = iter;
-		}
-	}
-	//pop from pending list, dont revisit
-	listPending.erase(closest.first);
-	visitedToVisit[closest.first] = true;
+	//pop from pending list(s), dont revisit
+	distancePoint closestSV = listPendingSV.pop_front();
+	auto iterP = listPending.find(closestSV.second);
+	//reverse it (from distancePoint -> pointDistance )
+	output = pointDistance{ closestSV.second, closestSV.first };
+	listPending.erase(iterP);
+	visitedToVisit[closestSV.second] = true;
 	--leftToVisit;
-	output = closest;
 	return true;
 }
+
+Dikstra::sortedVector_distancePoint::iterator Dikstra::sortedVector_distancePoint::add(const distancePoint& item)
+{
+	iterator iter = std::lower_bound(begin(), end(), item);
+	//check if that exact element already exists, if so the skip it
+	if (iter != end() && *iter == item) {
+		return iter;
+	}
+	return SortedItems.insert(iter, item);
+}
+
+Dikstra::sortedVector_distancePoint::iterator Dikstra::sortedVector_distancePoint::get(const distancePoint& item)
+{
+	iterator iter = std::lower_bound(begin(), end(), item);
+	//check if that element actually exists
+	if (iter != end() && *iter == item) {
+		return iter;
+	}
+	return SortedItems.end();
+}
+
+Dikstra::sortedVector_distancePoint::iterator Dikstra::sortedVector_distancePoint::update(const distancePoint& itemOld, const distancePoint& itemNew)
+{
+	remove(get(itemOld));
+	return add(itemNew);
+}
+
+Dikstra::distancePoint Dikstra::sortedVector_distancePoint::pop_front()
+{
+	if (SortedItems.size()) {
+		distancePoint val{SortedItems.front()};
+		SortedItems.erase(SortedItems.begin());
+		return val;
+	}
+	return distancePoint{_infDouble, -1};
+}
+
+

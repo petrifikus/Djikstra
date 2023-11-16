@@ -2,12 +2,10 @@
  * \file   ZadPPK.cpp
  * \brief  main function that takes arguments and runs the program
  * 
- * \author fafik
+ * \author petrifikus (github.com/petrifikus/)
  * \date   10.2023
  *********************************************************************/
 
-#include <iostream>
-#include <filesystem>
 
 #include "Dikstra.h"
 
@@ -22,13 +20,13 @@
 */
 int main(const int argC, const char* argV[])
 {
-//debug disabled
 	//no args given, show Help
-	/*if (argC == 1) {
-		printf("Help for Dijkstra, ANSI only build\n  -g graph file in\n  -w vertices file in\n  -o output file\n");
+	if (argC == 1) {
+		printf("Help for Dijkstra, ANSI only build\n  -g graph file in\n  -w vertices file in\n  -o output file out\n");
 		return 1;
-	}*/
+	}
 
+	//create class to hold computation data
 	Dikstra DjDisktra;
 	std::string arg_str;
 	//process agrs
@@ -45,13 +43,7 @@ int main(const int argC, const char* argV[])
 		}
 	}
 
-	auto cwd = std::filesystem::current_path();
-	std::cout << "cwd = " << cwd << "\n";
-//debug only set
-	DjDisktra.set_graphFile("graf.txt");
-	DjDisktra.set_verticesFile("w.txt");
-	DjDisktra.set_outputFile("out.txt");
-
+	//run the main program & return error_code
 	DikstraErrors error = DjDisktra.run();
 	printf("\n");
 	switch (error)

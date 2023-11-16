@@ -2,7 +2,7 @@
  * \file   Dikstra.h
  * \brief  this class contains all necessary things to run Dikstra
  * 
- * \author fafik
+ * \author petrifikus
  * \date   10.2023
  *********************************************************************/
 #pragma once
@@ -11,6 +11,7 @@
 #include <string>
 #include <fstream>
 #include <limits>
+#include <iomanip>
 
 
 
@@ -56,7 +57,7 @@ public:
 	*/
 	inline const bool is_ok()const { return graphFile.size() && verticesFile.size() && outputFile.size(); }
 	/**
-	 * @brief gets last error of type DikstraErrors
+	 * @brief gets last error of run()
 	 * @return last error from run()
 	*/
 	inline DikstraErrors get_lastError()const { return lastError; }
@@ -72,6 +73,17 @@ protected:
 	//double = +inf
 	static constexpr double _infDouble = std::numeric_limits<double>::infinity();
 	/**
+	 * @brief stores double, defaults to {+inf}
+	*/
+	struct doubleInf
+	{
+		double value;
+		doubleInf(const double other= _infDouble) : value(other) {}
+		inline double& operator = (const double& other) { value = other; return value; }
+		operator double&() { return value; }
+		operator const double&()const { return value; }
+	};
+	/**
 	 * @brief list of individual points
 	*/
 	typedef std::map<int, double> DItemList;
@@ -82,11 +94,55 @@ protected:
 	/**
 	 * @brief (point) to point distance
 	*/
-	typedef std::pair<int, double> pointDistance;
+	typedef std::pair<int, doubleInf> pointDistance;
 	/**
-	 * @brief distance (between) points
+	 * @brief distance (between) points (the reverse of pointDistance)
 	*/
-	typedef std::pair<double, int> distancePoint;
+	typedef std::pair<doubleInf, int> distancePoint;
+
+	/**
+	 * @brief {distance, id} sorted list that allows key-duplicates but not key+value duplicates
+	*/
+	struct sortedVector_distancePoint
+	{
+		typedef std::vector<distancePoint>::iterator iterator;
+		typedef std::vector<distancePoint>::const_iterator const_iterator;
+
+		/**
+		 * @brief always adds item to sorted list
+		 * @param item to add
+		 * @return iterator to added item
+		*/
+		iterator add(const distancePoint& item);
+		/**
+		 * @brief binary search for item
+		 * @param item to search for(reverse the pointDistance)
+		 * @return iterator to matching item, or end()
+		*/
+		iterator get(const distancePoint& item);
+		/**
+		 * @brief will update the item (by calling find, remove, add)
+		 * @param itemOld old item to look for
+		 * @param itemNew new item to replace it with
+		 * @return iterator to new item
+		*/
+		iterator update(const distancePoint& itemOld, const distancePoint& itemNew);
+		/**
+		 * @brief removes the 1st item from the list and returns it
+		 * @return copy if 1st item on the list
+		*/
+		distancePoint pop_front();
+
+		inline void remove(iterator itemToRemove) { if (itemToRemove != SortedItems.end()) SortedItems.erase(itemToRemove); }
+		inline iterator end() { return SortedItems.end(); }
+		inline iterator begin() { return SortedItems.begin(); }
+		inline void clear() { SortedItems.clear(); }
+		inline size_t size()const { return SortedItems.size(); }
+		inline bool empty()const { return SortedItems.empty(); }
+	protected:
+		std::vector<distancePoint> SortedItems;
+	};
+
 	/**
 	 * @brief data structure passed for graph solving
 	*/
@@ -103,7 +159,7 @@ protected:
 		*/
 		void init(const Dikstra::DwebT& DwebIn);
 		/**
-		 * @brief adds vertice to queue and updates the Previous_Distance table
+		 * @brief adds vertice to queues and updates the Previous_Distance table
 		 * @param vertice id
 		 * @param distance beetween points
 		 * @param PreviousVertice previous vertice
@@ -121,7 +177,7 @@ protected:
 		}
 		/**
 		 * @brief gets the next closest vertice from the pending list and removes it
-		 * (it would be faster if we sorted by distance)
+		 * (items are stored twice in ordered lists)
 		 * @param output: vertice closest
 		 * @return true if returned a value, false if error
 		*/
@@ -135,8 +191,11 @@ protected:
 		size_t leftToVisit;
 		//amount of connections made from the starting vertice
 		size_t connectsCount;
-		//11.11 queue for vertices to scan
+	protected:
+		//11.11 queue for vertices to scan (auto sorted by id)
 		std::map<int, double> listPending;
+		//16.11 queue for vertices to scan (in sorted order by distance)
+		sortedVector_distancePoint listPendingSV;
 	};
 
 
@@ -150,6 +209,7 @@ protected:
 	std::string outputFile;
 	DikstraErrors lastError;
 	std::ofstream* outFileP;
+	int _longestId;
 
 private:
 	/**
@@ -163,12 +223,12 @@ private:
 	*/
 	bool load_files();
 	/**
-	 * @brief finds the shortest path from given point(vertice) to all others & prints out the results
+	 * @brief finds the shortest path from given point(vertice) to all others & prints out the results to file
 	 * @param vertice id of the point to start tracing roads from
 	*/
 	void findShortestPath(const int& vertice)const;
 	/**
-	 * @brief print out all connected vertices
+	 * @brief print out to file all connected vertices
 	 * @param SolveGraphCin struct made by findShortestPath()
 	 * @param vertice to start going back from
 	*/
