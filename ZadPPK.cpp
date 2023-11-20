@@ -22,23 +22,35 @@ int main(const int argC, const char* argV[])
 {
 	//no args given, show Help
 	if (argC == 1) {
-		printf("Help for Dijkstra, ANSI only build v1.05\n  -g graph file in\n  -w vertices file in\n  -o output file out\n");
+		printf("Help for Dijkstra, ANSI only build v1.05.1\n  -g graph file in\n  -w vertices file in (-v)\n  -v vertice id (-w)\n  -o output file out\n");
 		return 1;
 	}
 
 	//create class to hold computation data
 	Dikstra DjDisktra;
 	std::string arg_str;
+	int arg_int;
 	//process agrs
 	for (int i = 1; i < argC; ++i) {
 		arg_str.assign(argV[i]);
 		if (arg_str == "-g") {
+			if (argC == i + 1) break;
 			DjDisktra.set_graphFile(argV[++i]);
 		}
 		else if (arg_str == "-w" || arg_str == "-v") {
-			DjDisktra.set_verticesFile(argV[++i]);
+			if (argC == i + 1) break;
+			++i;
+			arg_str.assign(argV[i]);
+			//try toNumber
+			if (arg_str.find_first_not_of("0123456789") == arg_str.npos) {
+				arg_int = atoi(argV[i]);
+				DjDisktra.add_vertice(arg_int);
+
+			}
+			DjDisktra.set_verticesFile(argV[i]);
 		}
 		else if (arg_str == "-o") {
+			if (argC == i + 1) break;
 			DjDisktra.set_outputFile(argV[++i]);
 		}
 	}

@@ -35,17 +35,22 @@ public:
 	 * @brief set graphFile file name
 	 * @param graphFile in file, where lines are specified like "2 -> 3 : 37.05"
 	*/
-	inline void set_graphFile(const std::string graphFile) { this->graphFile = graphFile; }
+	inline void set_graphFile(const std::string& graphFile) { this->graphFile = graphFile; }
 	/**
 	 * @brief set verticesFile file name
 	 * @param verticesFile in file, where each line contains a number(id) of vertice to make shortest paths to every other connected point
 	*/
-	inline void set_verticesFile(const std::string verticesFile) { this->verticesFile = verticesFile; }
+	inline void set_verticesFile(const std::string& verticesFile) { this->verticesFile = verticesFile; }
+	/**
+	 * @brief add a single vertice (with no duplicates)
+	 * @param vertice id to trace
+	*/
+	inline void add_vertice(const int vertice);
 	/**
 	 * @brief set outputFile file name
 	 * @param outputFile out file, all results will be saved there
 	*/
-	inline void set_outputFile(const std::string outputFile) { this->outputFile = outputFile; }
+	inline void set_outputFile(const std::string& outputFile) { this->outputFile = outputFile; }
 	/**
 	 * @brief get get_outputFile file name
 	 * @return outputFile name
@@ -55,7 +60,7 @@ public:
 	 * @brief checks if parameters are ok to calculate
 	 * @return 0 fail, 1 ok
 	*/
-	inline const bool is_ok()const { return graphFile.size() && verticesFile.size() && outputFile.size(); }
+	inline const bool is_ok()const { return graphFile.size() && (verticesFile.size() || verticesVector.size()) && outputFile.size(); }
 	/**
 	 * @brief gets last error of run()
 	 * @return last error from run()
@@ -203,6 +208,7 @@ protected:
 	 * @brief stores all vertices their conections and distances loaded from file
 	*/
 	DwebT Dweb;
+	std::map<int,bool> verticesVectorBlock;
 	std::vector<int> verticesVector;
 	std::string graphFile;
 	std::string verticesFile;

@@ -8,6 +8,16 @@
 #include "Dikstra.h"
 
 
+void Dikstra::add_vertice(const int vertice)
+{
+	auto existsV = verticesVectorBlock[vertice];
+	//dont add if already added
+	if (existsV) return;
+	//push back and mark added
+	existsV = true;
+	verticesVector.push_back(vertice);
+}
+
 DikstraErrors Dikstra::run_private()
 {
 	if (!is_ok()) return DikstraErrors::arg_error;
@@ -59,12 +69,13 @@ bool Dikstra::load_files()
 	int v1, v2;
 
 	inFile.open(verticesFile);
-	if (!inFile || !inFile.is_open()) return 0;
-	while (inFile >> v1)
-	{
-		verticesVector.push_back(v1);
+	if (inFile && inFile.is_open()) {
+		while (inFile >> v1)
+		{
+			add_vertice(v1); //makes sure to add it with no duplicates
+		}
+		inFile.close();
 	}
-	inFile.close();
 
 	inFile.open(graphFile);
 	if (!inFile || !inFile.is_open()) return 0;
