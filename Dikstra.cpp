@@ -10,7 +10,7 @@
 
 void Dikstra::add_vertice(const int vertice)
 {
-	auto existsV = verticesVectorBlock[vertice];
+	auto& existsV = verticesVectorBlock[vertice];
 	//dont add if already added
 	if (existsV) return;
 	//push back and mark added
@@ -28,9 +28,11 @@ DikstraErrors Dikstra::run_private()
 	//just a debug print of the graph structure in memory
 	/*printf("\nprinting graph:\n");
 	for (const auto& pair : Dweb) {
-		printf("[%i]= {\n", pair.first);
+		printf("[%i]= {\n", pair.first);	//int id version
+		//printf("[%c]= {\n", pair.first+'A');	//char A+id version
 		for (const auto& pairpair : pair.second) {
-			printf("  %i = %f\n", pairpair.first, pairpair.second);
+			printf("  %i = %f\n", pairpair.first, pairpair.second);	//int id version
+			//printf("  %c = %f\n", pairpair.first+'A', pairpair.second);	//char A+id version
 		}
 		printf("}\n");
 	}*/
@@ -76,6 +78,7 @@ bool Dikstra::load_files()
 		}
 		inFile.close();
 	}
+	if (verticesVector.empty()) return 0;
 
 	inFile.open(graphFile);
 	if (!inFile || !inFile.is_open()) return 0;
@@ -183,7 +186,8 @@ void Dikstra::writeShortestPathFor(const SolveGraphStruct& SolveGraphCin, const 
 	}
 	//print that list in reverse order
 	for (std::vector<int>::reverse_iterator item = VList.rbegin(); item != VList.rend(); ++item) {
-		outFile << std::setfill(' ') << std::setw(_longestId) << (*item) << " ";
+		outFile << std::setfill(' ') << std::setw(_longestId) << (*item) << " ";	//int id version
+		//outFile << char((*item)+'A') << " ";	//char A+id version
 		printf("%i ", *item);
 		if (*item != vertice) {
 			outFile << "-> ";
