@@ -1,3 +1,3 @@
-# ZadPPK
-zadanie semestralne 1
+# Djikstra
+zadanie semestralne 1:
 dijkstra - graf
