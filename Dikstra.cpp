@@ -10,12 +10,7 @@
 
 void Dikstra::add_vertice(const int vertice)
 {
-	auto& existsV = verticesVectorBlock[vertice];
-	//dont add if already added
-	if (existsV) return;
-	//push back and mark added
-	existsV = true;
-	verticesVector.push_back(vertice);
+	verticesListUnique[vertice] = true;
 }
 
 DikstraErrors Dikstra::run_private()
@@ -45,11 +40,11 @@ DikstraErrors Dikstra::run_private()
 	}
 	outFileP = &outFile;
 
-	for (const auto& item : verticesVector) {
-		const auto& finds = Dweb.find(item);
+	for (const auto& item : verticesListUnique) {
+		const auto& finds = Dweb.find(item.first);
 		if (finds == Dweb.end()) {
-			outFile << "  Vertice: " << item << " NOT found\n";
-			printf("  Vertice: %i NOT found\n", item);
+			outFile << "  Vertice: " << item.first << " NOT found\n";
+			printf("  Vertice: %i NOT found\n", item.first);
 		}
 		else {
 			outFile << "  Vertice: " << finds->first << " paths\n";
@@ -78,7 +73,7 @@ bool Dikstra::load_files()
 		}
 		inFile.close();
 	}
-	if (verticesVector.empty()) return 0;
+	if (verticesListUnique.empty()) return 0;
 
 	inFile.open(graphFile);
 	if (!inFile || !inFile.is_open()) return 0;

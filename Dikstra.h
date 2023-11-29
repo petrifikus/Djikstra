@@ -60,7 +60,7 @@ public:
 	 * @brief checks if parameters are ok to calculate
 	 * @return 0 fail, 1 ok
 	*/
-	inline const bool is_ok()const { return graphFile.size() && (verticesFile.size() || verticesVector.size()) && outputFile.size(); }
+	inline const bool is_ok()const { return graphFile.size() && (verticesFile.size() || verticesListUnique.size()) && outputFile.size(); }
 	/**
 	 * @brief gets last error of run()
 	 * @return last error from run()
@@ -208,8 +208,7 @@ protected:
 	 * @brief stores all vertices their conections and distances loaded from file
 	*/
 	DwebT Dweb;
-	std::map<int,bool> verticesVectorBlock;
-	std::vector<int> verticesVector;
+	std::map<int,bool> verticesListUnique;
 	std::string graphFile;
 	std::string verticesFile;
 	std::string outputFile;
