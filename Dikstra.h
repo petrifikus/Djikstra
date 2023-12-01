@@ -134,7 +134,7 @@ protected:
 		iterator update(const distancePoint& itemOld, const distancePoint& itemNew);
 		/**
 		 * @brief removes the 1st item from the list and returns it
-		 * @return copy if 1st item on the list
+		 * @return copy of 1st item on the list
 		*/
 		distancePoint pop_front();
 
@@ -213,6 +213,7 @@ protected:
 	std::string verticesFile;
 	std::string outputFile;
 	DikstraErrors lastError;
+	//const pointer to non-const output file
 	std::ofstream* outFileP;
 	int _longestId;
 

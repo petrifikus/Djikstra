@@ -129,6 +129,7 @@ void Dikstra::findShortestPath(const int& vertice) const
 	while (SolveGraph.popClosestVerticeFromQueue(closestVertice)) {
 		const auto& id = closestVertice.first;
 		auto ItemExists = Dweb.find(id);
+		//in case A->B but B does not connect to anything (a one way dead end)
 		if (ItemExists == Dweb.end()) {
 			//printf("---- [%i] is not in the main table of connections\n", id);
 			continue;
@@ -216,7 +217,7 @@ bool Dikstra::SolveGraphStruct::addVerticeToQueue(const int& vertice, const doub
 		totalDistance += Previous_Distance[PreviousVertice].second;
 	}
 
-	//&ref to item in map; if it doesnt exist it will be created with {0, +inf} (as of 16.11)
+	//&ref to item in map; if it doesn't exist it will be created with {0, +inf} (as of 16.11)
 	auto& distanceToV = Previous_Distance[vertice];
 
 	//set new lower distance
@@ -249,7 +250,7 @@ bool Dikstra::SolveGraphStruct::popClosestVerticeFromQueue(Dikstra::pointDistanc
 {
 	//cant get element(queue empty)
 	if (listPending.empty()) return false;
-	//pop from pending list(s), dont revisit
+	//pop from pending list(s), don't revisit
 	distancePoint closestSV = listPendingSV.pop_front();
 	auto iterP = listPending.find(closestSV.second);
 	//reverse it (from distancePoint -> pointDistance )
